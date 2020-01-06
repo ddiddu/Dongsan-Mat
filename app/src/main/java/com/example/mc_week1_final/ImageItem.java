@@ -1,13 +1,12 @@
 package com.example.mc_week1_final;
 
-import android.media.Image;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class ImageItem implements Parcelable {
-    private String displayName;
-    private String idColum;
-    private int item_id;
+    private String title; //displayName
+    private String image; //uri
+    private Integer item_id;
 
     public ImageItem() {
     }
@@ -19,18 +18,18 @@ public class ImageItem implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(displayName);
-        dest.writeString(idColum);
+        dest.writeString(title);
+        dest.writeString(image);
     }
 
     // 객체 받았을 때 직렬화 풀어줌
     public ImageItem(Parcel in) {
-        this.displayName = in.readString();
-        this.idColum = in.readString();
+        this.title = in.readString();
+        this.image = in.readString();
     }
 
     // Creator
-    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+    public static final Creator CREATOR = new Creator() {
         @Override
         public ImageItem createFromParcel(Parcel in) {
             return new ImageItem(in);
@@ -43,14 +42,11 @@ public class ImageItem implements Parcelable {
 
     };
 
-    public void setDisplayName(String displayName){this.displayName=displayName;}
-    public void setIdColum(String idColum){this.idColum=idColum;}
+    public void setTitle(String displayName){this.title=displayName;}
+    public void setImage(String uri){this.image=uri;}
+    public void setItem_id(int Item_id) {this.item_id = Item_id;}
 
-    public String getDisplayName(){return this.displayName;}
-    public String getIdColum(){return this.idColum;}
-
-    public void setItem_id(int Item_id) {
-        this.item_id = Item_id;
-    }
-
+    public String getTitle(){return this.title;}
+    public String getImage(){return this.image;}
+    public int getItem_id(){return this.item_id;};
 }

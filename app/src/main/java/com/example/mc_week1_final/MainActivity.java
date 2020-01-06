@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.viewpager.widget.ViewPager;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Intent intent=new Intent(this, LoadingActivity.class);
+        startActivity(intent);
 
         //toolbar=(Toolbar)findViewById(R.id.toolbar); //맨위에 toolbar 지정
         toolbartab=(Toolbar)findViewById(R.id.toolbartab);

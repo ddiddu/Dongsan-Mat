@@ -2,6 +2,7 @@ package com.example.mc_week1_final;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -17,7 +18,6 @@ import android.widget.ImageView;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class ImageAdapter extends BaseAdapter implements Filterable {
 
@@ -52,8 +52,10 @@ public class ImageAdapter extends BaseAdapter implements Filterable {
 
         ImageItem item=filteredList.get(position);
 
-        //idcolumn 로부터 사진 불러오기 (albumart)
-        Bitmap image = getImage(mContext, Integer.parseInt((item.getIdColum())));
+        //uri 로부터 사진 불러오기 (albumart)
+        Intent intent=new Intent();
+
+        Bitmap image = getImage(mContext, item.getImage(), intent);
         if(image != null) {
             imageView.setImageBitmap(image);
         }
@@ -65,13 +67,19 @@ public class ImageAdapter extends BaseAdapter implements Filterable {
         return imageView;
     }
 
-    // idColumn로 이미지 불러오기
+    // URI로 이미지 불러오기
     public static final BitmapFactory.Options options = new BitmapFactory.Options();
 
-    public static Bitmap getImage(Context context, int idColumn) {
+    public static Bitmap getImage(Context context, String urid, Intent intent) {
+        final int takeFlags = intent.getFlags()
+                & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        // Check for the freshest data.
 
+        Uri uri = Uri.parse(urid);
         ContentResolver res = context.getContentResolver();
-        Uri uri = Uri.parse("content://media/external/images/media/" + idColumn);
+        res.takePersistableUriPermission(uri, takeFlags);
+
         if (uri != null) {
             ParcelFileDescriptor fd = null;
             try {
@@ -117,9 +125,9 @@ public class ImageAdapter extends BaseAdapter implements Filterable {
                     filteredList = ImageDataList;
                 }             // 검색값 없으면, 전체 연락처
                 else {
-                    ArrayList<ImageItem> filteringList = new ArrayList<>();   // 필터링 중, 검색된 연락처 저장할 변수
+                    ArrayList<ImageItem> filteringList = new ArrayList<>();   // 필터링 중, 검색된 이미지 저장할 변수
                     for (ImageItem name : ImageDataList) {                    // 반복문으로 전체 필터 체크
-                        if (name.getDisplayName().toLowerCase().contains(charString.toLowerCase())) {
+                        if (name.getTitle().toLowerCase().contains(charString.toLowerCase())) {
                             filteringList.add(name);
                         }
                     }

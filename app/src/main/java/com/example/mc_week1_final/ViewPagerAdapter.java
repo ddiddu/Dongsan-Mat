@@ -2,20 +2,15 @@ package com.example.mc_week1_final;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
-import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
@@ -61,7 +56,7 @@ public class ViewPagerAdapter extends PagerAdapter implements Filterable {
 
         ImageItem item=filteredList.get(position);
         //idcolumn로부터 사진 불러오기
-        Bitmap image = getImage(context, Integer.parseInt((item.getIdColum())));
+        Bitmap image = getImage(context, item.getImage());
         if(image != null) {
             imageView.setImage(ImageSource.bitmap(image));
         }
@@ -81,13 +76,13 @@ public class ViewPagerAdapter extends PagerAdapter implements Filterable {
         viewPager.removeView(view);
     }
 
-    // idColumn로 이미지 불러오기
+    // URI로 이미지 불러오기
     public static final BitmapFactory.Options options = new BitmapFactory.Options();
 
-    public static Bitmap getImage(Context context, int idColumn) {
+    public static Bitmap getImage(Context context, String urid) {
 
         ContentResolver res = context.getContentResolver();
-        Uri uri = Uri.parse("content://media/external/images/media/" + idColumn);
+        Uri uri = Uri.parse(urid);
         if (uri != null) {
             ParcelFileDescriptor fd = null;
             try {
@@ -135,7 +130,7 @@ public class ViewPagerAdapter extends PagerAdapter implements Filterable {
                 else {
                     ArrayList<ImageItem> filteringList = new ArrayList<>();   // 필터링 중, 검색된 연락처 저장할 변수
                     for (ImageItem name : ImageDataList) {                    // 반복문으로 전체 필터 체크
-                        if (name.getDisplayName().toLowerCase().contains(charString.toLowerCase())) {
+                        if (name.getTitle().toLowerCase().contains(charString.toLowerCase())) {
                             filteringList.add(name);
                         }
                     }
