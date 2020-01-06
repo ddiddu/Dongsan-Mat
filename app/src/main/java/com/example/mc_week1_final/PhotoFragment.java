@@ -1,28 +1,38 @@
 package com.example.mc_week1_final;
 
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-
-import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.fragment.app.Fragment;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 
 /**
@@ -46,6 +56,17 @@ public class PhotoFragment extends Fragment implements TextWatcher {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+
+    Retrofit retrofit;
+    TestService testService;
+
+    private Button BtUpload;
+    private static final int IMG_REQUEST=777;
+
+    private ArrayList<ImageItem> imageList;
+    private ArrayList<ImageItem> getImageList;
+    private Gson gson;
+    private Boolean ok=false;
 
     public PhotoFragment() {
         // Required empty public constructor
@@ -76,6 +97,9 @@ public class PhotoFragment extends Fragment implements TextWatcher {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        gson=new GsonBuilder().setLenient().create();
+        retrofit=new Retrofit.Builder().baseUrl("http://192.249.19.251:9880/").addConverterFactory(GsonConverterFactory.create(gson)).build();
+        testService=retrofit.create(TestService.class);
     }
 
     @Override
@@ -83,23 +107,21 @@ public class PhotoFragment extends Fragment implements TextWatcher {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         setHasOptionsMenu(true);
-        View view=inflater.inflate(R.layout.fragment_photo,container,false);
+        View view = inflater.inflate(R.layout.fragment_photo, container, false);
 
-        gridView=(GridView)view.findViewById(R.id.grid_view);
-        imageAdapter=new ImageAdapter(getContext(), getImageList());
-        gridView.setAdapter(imageAdapter); //context를 이 activity에서 가져오는 것
+        gridView = (GridView) view.findViewById(R.id.grid_view);
 
-        final ArrayList<ImageItem> myImages = getImageList();
+        //getImageFromServer();
 
-        /*gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        BtUpload = (Button) view.findViewById(R.id.upload_button);
+
+        BtUpload.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent=new Intent(getActivity().getApplicationContext(),FullScreenActivity3.class);
-                intent.putExtra("id",position).putExtra("myImages", myImages);
-                startActivity(intent);
+            public void onClick(View v) {
+                selectImage();
             }
         });
-         */
+
         return view;
     }
 
@@ -146,31 +168,6 @@ public class PhotoFragment extends Fragment implements TextWatcher {
     public void afterTextChanged(Editable editable) {
     }
 
-    // 안드로이드 사진 read
-    public ArrayList<ImageItem> getImageList() {
-        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        String sortOrder = MediaStore.Images.Media._ID + " COLLATE LOCALIZED ASC";
-
-        Cursor cursor = getContext().getContentResolver().query(uri,null,null,null,sortOrder);
-        LinkedHashSet<ImageItem> hasList = new LinkedHashSet<>();
-
-        while(cursor.moveToNext()) {
-
-            ImageItem myImage = new ImageItem();
-            myImage.setIdColum(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID)));
-            myImage.setDisplayName(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)));
-
-            hasList.add(myImage);
-        }
-
-        ArrayList<ImageItem> imageList = new ArrayList<ImageItem>(hasList);
-        for (int i = 0; i < imageList.size(); i++) {
-            imageList.get(i).setItem_id(i);
-        }
-        return imageList;
-    }
-
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -184,5 +181,93 @@ public class PhotoFragment extends Fragment implements TextWatcher {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    private void selectImage(){
+        Intent intent=new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+        startActivityForResult(intent, IMG_REQUEST);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==IMG_REQUEST){
+            Uri uri=data.getData();
+            ImageItem myImage = new ImageItem();
+            myImage.setImage(uri.toString());
+
+            String sortOrder = MediaStore.Images.Media._ID  + " COLLATE LOCALIZED ASC";
+            Cursor cursor = getContext().getContentResolver().query(uri,null,null,null,sortOrder);
+            if(cursor.moveToFirst()){
+                myImage.setItem_id((int)(Math.random()*100));
+                System.out.println("getItemId"+myImage.getItem_id());
+                myImage.setTitle(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)));
+            };
+
+            imageList=new ArrayList<ImageItem>();
+            imageList.add(myImage);
+            putImageToServer(imageList);
+        }
+    }
+
+    public ArrayList<ImageItem> getImageFromServer(){
+        Call<ArrayList<ImageItem>> call=testService.getAllImage();
+
+        call.enqueue(new Callback<ArrayList<ImageItem>>() {
+            @Override
+            public void onResponse(Call<ArrayList<ImageItem>> call, Response<ArrayList<ImageItem>> response) {
+                getImageList=new ArrayList<ImageItem>();
+                imageList=response.body();
+                Log.d("tag", ""+response.body().size());
+
+                for(int i=0;i<imageList.size();i++){
+                    getImageList.add(imageList.get(i));
+                }
+
+                for (int j=0;j<getImageList.size();j++){
+                    getImageList.get(j).setItem_id(j);
+                }
+
+                imageAdapter = new ImageAdapter(getContext(), getImageList);
+
+                gridView.setAdapter(imageAdapter); //context를 이 activity에서 가져오는 것
+
+                final ArrayList<ImageItem> myImages = getImageList;
+
+                gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Intent intent = new Intent(getActivity().getApplicationContext(), FullScreenActivity3.class);
+                        intent.putExtra("id", position).putExtra("myImages", myImages);
+                        startActivity(intent);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<ImageItem>> call, Throwable t) {
+                Log.d("asd","get failed " + t.getMessage());
+            }
+        });
+        return imageList;
+    }
+
+    public void putImageToServer(ArrayList<ImageItem> imageItemArrayList){
+        Call<ArrayList<ImageItem>> call=testService.uploadOneImage(imageItemArrayList.get(0));
+
+        call.enqueue(new Callback<ArrayList<ImageItem>>() {
+            @Override
+            public void onResponse(Call<ArrayList<ImageItem>> call, Response<ArrayList<ImageItem>> response) {
+                System.out.println("connection success");
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<ImageItem>> call, Throwable t) {
+                System.out.println("connection failed" + t.getMessage());
+            }
+        });
     }
 }

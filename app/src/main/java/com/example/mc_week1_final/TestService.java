@@ -18,4 +18,11 @@ public interface TestService {
 ////////////////////////////PLACE
     @GET("/places/place/{place}")
     Call<ArrayList<Place>> getPlace(@Path("place") String place);
+
+ ///////////////////////////IMAGE   
+    @POST("images")
+    Call<ArrayList<ImageItem>> uploadOneImage(@Body ImageItem imageItem);
+
+    @GET("images")
+    Call<ArrayList<ImageItem>> getAllImage();
 }

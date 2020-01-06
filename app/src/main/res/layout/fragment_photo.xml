@@ -1,21 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".PhotoFragment">
+    tools:context=".PhotoFragment"
+    android:orientation="vertical">
 
     <!-- TODO: Update blank fragment layout -->
     <GridView
         android:id="@+id/grid_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="500dp"
         android:columnWidth="90dp"
         android:gravity="center"
         android:horizontalSpacing="10dp"
+        android:minHeight="50dp"
         android:numColumns="3"
         android:stretchMode="columnWidth"
-        android:verticalSpacing="10dp">
-
+        android:verticalSpacing="10dp"
+        android:layout_marginBottom="10dp">
     </GridView>
-</FrameLayout>
+
+    <Button
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_file_upload"
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/upload_button"/>
+
+</LinearLayout>
