@@ -14,4 +14,10 @@ public interface TestService {
 
     @POST("/contacts")
     Call<ArrayList<Contact>> postOneContact(@Body Contact contact);
+
+    @POST("images")
+    Call<ArrayList<ImageItem>> uploadOneImage(@Body ImageItem imageItem);
+
+    @GET("images")
+    Call<ArrayList<ImageItem>> getAllImage();
 }
