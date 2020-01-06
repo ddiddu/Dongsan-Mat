@@ -1,5 +1,7 @@
 package com.example.mc_week1_final;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -31,6 +33,7 @@ public class PageAdapter extends FragmentPagerAdapter {
     }
 
     public void addFragment(Fragment fragment, String title){
+        Log.d("제발2", "asdf");
         mFragmentList.add(fragment);
         mFragmentTitleList.add(title);
     }

@@ -1,5 +1,6 @@
 package com.example.mc_week1_final;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -15,14 +16,14 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class ContactServer {
+public class UseServer {
     private ArrayList<Contact> arrayList;
     private Gson gson;
     private Retrofit retrofit;
     private TestService testService;
     private Boolean ok = false;
 
-    public ContactServer() {
+    public UseServer() {
         gson = new GsonBuilder().setLenient().create();
         retrofit = new Retrofit.Builder().baseUrl("http://192.249.19.251:9880").addConverterFactory(GsonConverterFactory.create(gson)).build();
         testService = retrofit.create(TestService.class);
@@ -37,7 +38,6 @@ public class ContactServer {
             public void onResponse(Call<ArrayList<Contact>> call, Response<ArrayList<Contact>> response) {
                 arrayList = response.body();
                 ok = true;
-                Log.d("asdf", ""+response.body().size());
             }
 
             @Override

@@ -9,9 +9,9 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.WindowManager;
-import android.widget.TableLayout;
 
 import com.google.android.material.tabs.TabLayout;
 
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         pageAdapter=new PageAdapter(getSupportFragmentManager());
         pageAdapter.addFragment(new ContactFragment(),"연락처");
         pageAdapter.addFragment(new PhotoFragment(), "사진");
-        pageAdapter.addFragment(new MusicFragment(), "음악");
+        pageAdapter.addFragment(new MapFragment(), "지도");
 
         viewPager.setAdapter(pageAdapter);
 

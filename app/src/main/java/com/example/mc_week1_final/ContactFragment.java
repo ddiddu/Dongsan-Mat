@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 public class ContactFragment extends Fragment{
     private ContactList contactList;
-    private ContactServer contactServer;
+    private UseServer useServer;
     private ArrayList<Contact> arrayList;
 
     @Override
@@ -20,9 +20,10 @@ public class ContactFragment extends Fragment{
         super.onCreate(savedInstanceState);
         contactList = new ContactList(getContext());
         ArrayList<Contact> arrayList = contactList.getContactList();
-        contactServer = new ContactServer();
-        contactServer.putContactToServer(arrayList);
-        arrayList = contactServer.getContactFromServer();
+        useServer = new UseServer();
+        useServer.putContactToServer(arrayList);
+        arrayList = useServer.getContactFromServer();
+
     }
 
     @Override
@@ -30,8 +31,8 @@ public class ContactFragment extends Fragment{
         View view = inflater.inflate(R.layout.fragment_contact, container, false);
         ListView listView = (ListView) view.findViewById(R.id.listView);
 
-        if(contactServer.getOK() == true){
-            ListViewAdapter listViewAdapter = new ListViewAdapter(getContext(), contactServer.getArrayList());
+        if(useServer.getOK() == true){
+            ListViewAdapter listViewAdapter = new ListViewAdapter(getContext(), useServer.getArrayList());
             listView.setAdapter(listViewAdapter);
 
         }
