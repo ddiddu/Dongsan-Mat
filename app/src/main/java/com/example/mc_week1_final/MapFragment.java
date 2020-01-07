@@ -15,12 +15,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -44,12 +46,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private ArrayList<Place> arrayList;
     private boolean arrayok = false;
     private TestService testService;
+    private ArrayList<Marker> markerArrayList;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("악1", "oncreate");
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.249.19.251:9880").addConverterFactory(GsonConverterFactory.create(gson)).build();
         testService = retrofit.create(TestService.class);
@@ -58,7 +60,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d("악2", "oncreateview");
         View view = inflater.inflate(R.layout.fragment_map, container, false);
         button = view.findViewById(R.id.button);
         editText = view.findViewById(R.id.editText);
@@ -66,23 +67,29 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("악6", "onclick");
+                if(markerArrayList != null && markerArrayList.size() != 0 && googleMap != null){
+                    for(int i = 0; i < markerArrayList.size(); i++){
+                        markerArrayList.get(i).remove();
+                    }
+                }
+                markerArrayList =  new ArrayList<>();
                 String p = editText.getText().toString();
                 if(!p.equals("")){
-                    Log.d("악7", "null");
                     Call<ArrayList<Place>> call = testService.getPlace(p);
                     new NetworkCall().execute(call);
                 }
 
                 if(arrayok == true && googleMap != null){
                     if(arrayList != null){
-                        Log.d("악8", "진짜" + arrayList.get(0).getLatitude());
-                        LatLng place = new LatLng(Double.parseDouble(arrayList.get(0).getLatitude()), Double.parseDouble(arrayList.get(0).getLongitude()));
-                        MarkerOptions markerOptions = new MarkerOptions();
-                        markerOptions.position(place);
-                        googleMap.addMarker(markerOptions);
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(place));
-                        googleMap.animateCamera(CameraUpdateFactory.zoomTo(4));
+                        LatLng[] places = new LatLng[arrayList.size()];
+;                        for(int i = 0; i < arrayList.size(); i++){
+                            places[i] = new LatLng(Double.parseDouble(arrayList.get(i).getLatitude()), Double.parseDouble(arrayList.get(i).getLongitude()));
+                            MarkerOptions markerOptions = new MarkerOptions();
+                            markerOptions.position(places[i]).title(p);
+                            markerArrayList.add(googleMap.addMarker(markerOptions));
+                        }
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(places[0]));
+                        googleMap.animateCamera(CameraUpdateFactory.zoomTo(2));
                         arrayok = false;
                         arrayList = null;
                     }
@@ -95,7 +102,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        Log.d("악3", "onviewcreate");
         super.onViewCreated(view, savedInstanceState);
         mapView = (MapView) view.findViewById(R.id.mapView);
         if(mapView != null){
@@ -106,16 +112,26 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        Log.d("악4", "onmapready");
-        this.googleMap = googleMap;
+    public void onMapReady(final GoogleMap googleMap1) {
+        this.googleMap = googleMap1;
         this.googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+        this.googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(33.396572, 104.538323)));
+        this.googleMap.animateCamera(CameraUpdateFactory.zoomTo(4));
+        this.googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                CameraUpdate zoom = CameraUpdateFactory.zoomTo(10);
+                googleMap.moveCamera(zoom);
+                return false;
+            }
+        });
     }
+
+
 
     private class NetworkCall extends AsyncTask<Call, Void, String> {
         @Override
         protected String doInBackground(Call... calls) {
-            Log.d("악5", "doinbackground");
             try{
                 Call<ArrayList<Place>> call = calls[0];
                 Response<ArrayList<Place>> response = call.execute();
