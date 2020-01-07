@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -55,7 +56,7 @@ public class ImageAdapter extends BaseAdapter implements Filterable {
         //uri 로부터 사진 불러오기 (albumart)
         Intent intent=new Intent();
 
-        Bitmap image = getImage(mContext, item.getImage(), intent);
+        Bitmap image = StringToBitmap(item.getImage());
         if(image != null) {
             imageView.setImageBitmap(image);
         }
@@ -67,52 +68,16 @@ public class ImageAdapter extends BaseAdapter implements Filterable {
         return imageView;
     }
 
-    // URI로 이미지 불러오기
-    public static final BitmapFactory.Options options = new BitmapFactory.Options();
-
-    public static Bitmap getImage(Context context, String urid, Intent intent) {
-        final int takeFlags = intent.getFlags()
-                & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        // Check for the freshest data.
-
-        Uri uri = Uri.parse(urid);
-        ContentResolver res = context.getContentResolver();
-        res.takePersistableUriPermission(uri, takeFlags);
-
-        if (uri != null) {
-            ParcelFileDescriptor fd = null;
-            try {
-                fd = res.openFileDescriptor(uri, "r");
-
-                //크기를 얻어오기 위한옵션 ,
-                //inJustDecodeBounds값이 true로 설정되면 decoder가 bitmap object에 대해 메모리를 할당하지 않고, 따라서 bitmap을 반환하지도 않는다.
-                // 다만 options fields는 값이 채워지기 때문에 Load 하려는 이미지의 크기를 포함한 정보들을 얻어올 수 있다.
-
-                options.inJustDecodeBounds = true;
-                BitmapFactory.decodeFileDescriptor(
-                        fd.getFileDescriptor(), null, options);
-                int scale = 0;
-                options.inJustDecodeBounds = false;
-                options.inSampleSize = scale;
-
-                Bitmap b = BitmapFactory.decodeFileDescriptor(
-                        fd.getFileDescriptor(), null, options);
-
-                if (b != null) {
-                    // finally rescale to exactly the size we need
-                }
-                return b;
-            } catch (FileNotFoundException e) {
-            } finally {
-                try {
-                    if (fd != null)
-                        fd.close();
-                } catch (IOException e) {
-                }
-            }
+    //string형을 bitmap으로 변환시켜주는 함수
+    private Bitmap StringToBitmap(String encodedString) {
+        try{
+            byte[] encodeByte= Base64.decode(encodedString,Base64.DEFAULT);
+            Bitmap bitmap=BitmapFactory.decodeByteArray(encodeByte,0,encodeByte.length);
+            return bitmap;
+        } catch (Exception e){
+            e.getMessage();
+            return null;
         }
-        return null;
     }
 
     @Override

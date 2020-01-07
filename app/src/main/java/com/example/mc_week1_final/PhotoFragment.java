@@ -1,13 +1,19 @@
 package com.example.mc_week1_final;
 
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,6 +33,9 @@ import androidx.fragment.app.Fragment;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -61,12 +71,14 @@ public class PhotoFragment extends Fragment implements TextWatcher {
     TestService testService;
 
     private Button BtUpload;
+    private Button BtDownload;
     private static final int IMG_REQUEST=777;
 
     private ArrayList<ImageItem> imageList;
     private ArrayList<ImageItem> getImageList;
     private Gson gson;
-    private Boolean ok=false;
+
+    private Bitmap bitmap;
 
     public PhotoFragment() {
         // Required empty public constructor
@@ -111,10 +123,15 @@ public class PhotoFragment extends Fragment implements TextWatcher {
 
         gridView = (GridView) view.findViewById(R.id.grid_view);
 
-        //getImageFromServer();
+        BtDownload = (Button) view.findViewById(R.id.download_button);
+        BtDownload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getImageFromServer();
+            }
+        });
 
         BtUpload = (Button) view.findViewById(R.id.upload_button);
-
         BtUpload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -197,7 +214,9 @@ public class PhotoFragment extends Fragment implements TextWatcher {
         if(requestCode==IMG_REQUEST){
             Uri uri=data.getData();
             ImageItem myImage = new ImageItem();
-            myImage.setImage(uri.toString());
+
+            bitmap=getImage(getContext(),uri.toString());
+            myImage.setImage(BitmapToString(bitmap));
 
             String sortOrder = MediaStore.Images.Media._ID  + " COLLATE LOCALIZED ASC";
             Cursor cursor = getContext().getContentResolver().query(uri,null,null,null,sortOrder);
@@ -213,6 +232,15 @@ public class PhotoFragment extends Fragment implements TextWatcher {
         }
     }
 
+    //bitmap을 string형으로 전환
+    private String BitmapToString(Bitmap bitmap) {
+        ByteArrayOutputStream baos=new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG,70,baos);
+        byte[] bytes=baos.toByteArray();
+        String temp= Base64.encodeToString(bytes,Base64.DEFAULT);
+        return temp;
+    }
+
     public ArrayList<ImageItem> getImageFromServer(){
         Call<ArrayList<ImageItem>> call=testService.getAllImage();
 
@@ -220,6 +248,7 @@ public class PhotoFragment extends Fragment implements TextWatcher {
             @Override
             public void onResponse(Call<ArrayList<ImageItem>> call, Response<ArrayList<ImageItem>> response) {
                 getImageList=new ArrayList<ImageItem>();
+                getImageList.clear();
                 imageList=response.body();
                 Log.d("tag", ""+response.body().size());
 
@@ -261,6 +290,7 @@ public class PhotoFragment extends Fragment implements TextWatcher {
         call.enqueue(new Callback<ArrayList<ImageItem>>() {
             @Override
             public void onResponse(Call<ArrayList<ImageItem>> call, Response<ArrayList<ImageItem>> response) {
+                Toast.makeText(getContext(), "upload success", Toast.LENGTH_LONG).show();
                 System.out.println("connection success");
             }
 
@@ -269,5 +299,48 @@ public class PhotoFragment extends Fragment implements TextWatcher {
                 System.out.println("connection failed" + t.getMessage());
             }
         });
+    }
+
+    // URI로 bitmap 불러오기
+    public static final BitmapFactory.Options options = new BitmapFactory.Options();
+
+    public static Bitmap getImage(Context context, String urid) {
+
+        Uri uri = Uri.parse(urid);
+        ContentResolver res = context.getContentResolver();
+
+        if (uri != null) {
+            ParcelFileDescriptor fd = null;
+            try {
+                fd = res.openFileDescriptor(uri, "r");
+
+                //크기를 얻어오기 위한옵션 ,
+                //inJustDecodeBounds값이 true로 설정되면 decoder가 bitmap object에 대해 메모리를 할당하지 않고, 따라서 bitmap을 반환하지도 않는다.
+                // 다만 options fields는 값이 채워지기 때문에 Load 하려는 이미지의 크기를 포함한 정보들을 얻어올 수 있다.
+
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeFileDescriptor(
+                        fd.getFileDescriptor(), null, options);
+                int scale = 0;
+                options.inJustDecodeBounds = false;
+                options.inSampleSize = scale;
+
+                Bitmap b = BitmapFactory.decodeFileDescriptor(
+                        fd.getFileDescriptor(), null, options);
+
+                if (b != null) {
+                    // finally rescale to exactly the size we need
+                }
+                return b;
+            } catch (FileNotFoundException e) {
+            } finally {
+                try {
+                    if (fd != null)
+                        fd.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+        return null;
     }
 }

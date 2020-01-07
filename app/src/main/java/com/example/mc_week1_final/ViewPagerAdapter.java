@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class ViewPagerAdapter extends PagerAdapter implements Filterable {
+public class ViewPagerAdapter extends PagerAdapter{
 
     private Context context;
     private LayoutInflater layoutInflater;
@@ -55,8 +56,8 @@ public class ViewPagerAdapter extends PagerAdapter implements Filterable {
         SubsamplingScaleImageView imageView=(SubsamplingScaleImageView)view.findViewById(R.id.myImageView);
 
         ImageItem item=filteredList.get(position);
-        //idcolumn로부터 사진 불러오기
-        Bitmap image = getImage(context, item.getImage());
+
+        Bitmap image = StringToBitmap(item.getImage());
         if(image != null) {
             imageView.setImage(ImageSource.bitmap(image));
         }
@@ -69,84 +70,21 @@ public class ViewPagerAdapter extends PagerAdapter implements Filterable {
         return view;
     }
 
+    private Bitmap StringToBitmap(String encodedString) {
+        try{
+            byte[] encodeByte= Base64.decode(encodedString,Base64.DEFAULT);
+            Bitmap bitmap=BitmapFactory.decodeByteArray(encodeByte,0,encodeByte.length);
+            return bitmap;
+        } catch (Exception e){
+            e.getMessage();
+            return null;
+        }
+    }
+
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         ViewPager viewPager=(ViewPager)container;
         View view=(View)object;
         viewPager.removeView(view);
-    }
-
-    // URI로 이미지 불러오기
-    public static final BitmapFactory.Options options = new BitmapFactory.Options();
-
-    public static Bitmap getImage(Context context, String urid) {
-
-        ContentResolver res = context.getContentResolver();
-        Uri uri = Uri.parse(urid);
-        if (uri != null) {
-            ParcelFileDescriptor fd = null;
-            try {
-                fd = res.openFileDescriptor(uri, "r");
-
-                //크기를 얻어오기 위한옵션 ,
-                //inJustDecodeBounds값이 true로 설정되면 decoder가 bitmap object에 대해 메모리를 할당하지 않고, 따라서 bitmap을 반환하지도 않는다.
-                // 다만 options fields는 값이 채워지기 때문에 Load 하려는 이미지의 크기를 포함한 정보들을 얻어올 수 있다.
-
-                options.inJustDecodeBounds = true;
-                BitmapFactory.decodeFileDescriptor(
-                        fd.getFileDescriptor(), null, options);
-                int scale = 0;
-                options.inJustDecodeBounds = false;
-                options.inSampleSize = scale;
-
-                Bitmap b = BitmapFactory.decodeFileDescriptor(
-                        fd.getFileDescriptor(), null, options);
-
-                if (b != null) {
-                    // finally rescale to exactly the size we need
-                }
-                return b;
-            } catch (FileNotFoundException e) {
-            } finally {
-                try {
-                    if (fd != null)
-                        fd.close();
-                } catch (IOException e) {
-                }
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Filter getFilter() {
-        return new Filter() {       // performFiltering, publishResults 필수
-            @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
-                String charString = constraint.toString();      // 입력받은 값 string으로 변경
-                if (charString.isEmpty()) {
-                    filteredList = ImageDataList;
-                }             // 검색값 없으면, 전체 연락처
-                else {
-                    ArrayList<ImageItem> filteringList = new ArrayList<>();   // 필터링 중, 검색된 연락처 저장할 변수
-                    for (ImageItem name : ImageDataList) {                    // 반복문으로 전체 필터 체크
-                        if (name.getTitle().toLowerCase().contains(charString.toLowerCase())) {
-                            filteringList.add(name);
-                        }
-                    }
-                    filteredList = filteringList;       // 검색된 리스트ㄱ
-                }
-
-                FilterResults filterResults = new FilterResults();
-                filterResults.values = filteredList;
-                return filterResults;
-            }
-
-            @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-                filteredList = (ArrayList<ImageItem>) results.values;
-                notifyDataSetChanged();
-            }
-        };
     }
 }

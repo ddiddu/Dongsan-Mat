@@ -1,5 +1,6 @@
 package com.example.mc_week1_final;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 
@@ -23,7 +24,6 @@ public class ContactFragment extends Fragment{
         useServer = new UseServer();
         useServer.putContactToServer(arrayList);
         arrayList = useServer.getContactFromServer();
-
     }
 
     @Override
@@ -34,7 +34,6 @@ public class ContactFragment extends Fragment{
         if(useServer.getOK() == true){
             ListViewAdapter listViewAdapter = new ListViewAdapter(getContext(), useServer.getArrayList());
             listView.setAdapter(listViewAdapter);
-
         }
 
         return view;

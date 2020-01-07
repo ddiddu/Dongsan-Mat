@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 public class ImageItem implements Parcelable {
     private String title; //displayName
-    private String image; //uri
+    private String image; //uri=> bitmap to string
     private Integer item_id;
 
     public ImageItem() {
