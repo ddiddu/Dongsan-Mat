@@ -1,9 +1,13 @@
 package com.example.mc_week1_final;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -17,6 +21,7 @@ import com.r0adkll.slidr.model.SlidrConfig;
 import com.r0adkll.slidr.model.SlidrInterface;
 import com.r0adkll.slidr.model.SlidrPosition;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
 public class FullScreenActivity3 extends AppCompatActivity {
@@ -87,4 +92,5 @@ public class FullScreenActivity3 extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
 }

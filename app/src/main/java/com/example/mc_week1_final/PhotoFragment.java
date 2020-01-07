@@ -222,7 +222,6 @@ public class PhotoFragment extends Fragment implements TextWatcher {
             Cursor cursor = getContext().getContentResolver().query(uri,null,null,null,sortOrder);
             if(cursor.moveToFirst()){
                 myImage.setItem_id((int)(Math.random()*100));
-                System.out.println("getItemId"+myImage.getItem_id());
                 myImage.setTitle(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)));
             };
 
@@ -250,7 +249,6 @@ public class PhotoFragment extends Fragment implements TextWatcher {
                 getImageList=new ArrayList<ImageItem>();
                 getImageList.clear();
                 imageList=response.body();
-                Log.d("tag", ""+response.body().size());
 
                 for(int i=0;i<imageList.size();i++){
                     getImageList.add(imageList.get(i));
@@ -278,7 +276,6 @@ public class PhotoFragment extends Fragment implements TextWatcher {
 
             @Override
             public void onFailure(Call<ArrayList<ImageItem>> call, Throwable t) {
-                Log.d("asd","get failed " + t.getMessage());
             }
         });
         return imageList;
@@ -291,12 +288,10 @@ public class PhotoFragment extends Fragment implements TextWatcher {
             @Override
             public void onResponse(Call<ArrayList<ImageItem>> call, Response<ArrayList<ImageItem>> response) {
                 Toast.makeText(getContext(), "upload success", Toast.LENGTH_LONG).show();
-                System.out.println("connection success");
             }
 
             @Override
             public void onFailure(Call<ArrayList<ImageItem>> call, Throwable t) {
-                System.out.println("connection failed" + t.getMessage());
             }
         });
     }

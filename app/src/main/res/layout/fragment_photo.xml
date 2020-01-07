@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".PhotoFragment"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#ffffff">
 
     <!-- TODO: Update blank fragment layout -->
     <GridView
@@ -29,18 +30,18 @@
 
         <Button
             android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:background="@drawable/ic_file_upload"
+            android:layout_height="50dp"
+            android:background="@drawable/upload"
             android:layout_gravity="center_horizontal"
             android:id="@+id/upload_button"/>
 
         <Button
             android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:background="@drawable/ic_file_download"
+            android:layout_height="50dp"
+            android:background="@drawable/download"
             android:layout_gravity="center_horizontal"
             android:id="@+id/download_button"
-            android:layout_marginLeft="20dp"/>
+            android:layout_marginLeft="100dp" />
 
     </LinearLayout>
 
