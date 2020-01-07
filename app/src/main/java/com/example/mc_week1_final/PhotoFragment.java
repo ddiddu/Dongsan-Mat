@@ -267,6 +267,7 @@ public class PhotoFragment extends Fragment implements TextWatcher {
                 gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        System.out.println("start full screen activity");
                         Intent intent = new Intent(getActivity().getApplicationContext(), FullScreenActivity3.class);
                         intent.putExtra("id", position).putExtra("myImages", myImages);
                         startActivity(intent);
